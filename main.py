@@ -62,13 +62,18 @@ def main():
         
         st.header("Network Visualization")
         
-        if sim.graph.nodes:
+        if hasattr(st.session_state, 'show_gif') and st.session_state.show_gif:
+            col_viz1, col_viz2 = st.columns([3, 1])
+            with col_viz1:
+                st.image(st.session_state.show_gif, caption="Packet Animation", use_column_width=True)
+            with col_viz2:
+                if st.button("🔄 Back to Live View"):
+                    del st.session_state.show_gif
+                    st.rerun()
+        elif sim.graph.nodes:
             fig, ax = plt.subplots(figsize=(10, 8))
             viz.draw_network(sim, fig, ax)
             st.pyplot(fig)
-            
-
-            
             ui.render_legend()
         else:
             st.info("Add routers to start building your network")

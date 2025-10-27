@@ -18,7 +18,9 @@ class NetworkSimulator:
             'hops': 0,
             'total_latency': 0,
             'packet_id': None,
-            'status': 'idle'
+            'status': 'idle',
+            'num_packets': 1,
+            'packet_size': 64
         }
         self.animation_frames = []
         
@@ -50,45 +52,54 @@ class NetworkSimulator:
         if start not in self.graph.nodes or end not in self.graph.nodes:
             return [], float('inf')
             
-        distances = {node: float('inf') for node in self.graph.nodes}
-        distances[start] = 0
+        if start == end:
+            return [start], 0
+            
+        distances = {start: 0}
         previous = {}
+        visited = set()
         pq = [(0, start)]
         
         while pq:
             current_dist, current = heapq.heappop(pq)
             
+            if current in visited:
+                continue
+            visited.add(current)
+            
             if current == end:
                 break
                 
-            if current_dist > distances[current]:
-                continue
-                
             for neighbor in self.graph.neighbors(current):
+                if neighbor in visited:
+                    continue
+                    
                 edge_data = self.graph[current][neighbor]
                 if edge_data['status'] == 'failed':
                     continue
                     
-                weight = edge_data['latency'] * (1 + edge_data['congestion']/100)
+                weight = edge_data['latency']
                 distance = current_dist + weight
                 
-                if distance < distances[neighbor]:
+                if neighbor not in distances or distance < distances[neighbor]:
                     distances[neighbor] = distance
                     previous[neighbor] = current
                     heapq.heappush(pq, (distance, neighbor))
         
+        if end not in distances:
+            return [], float('inf')
+            
         path = []
         current = end
         while current in previous:
             path.append(current)
             current = previous[current]
-        if distances[end] != float('inf'):
-            path.append(start)
-            path.reverse()
+        path.append(start)
+        path.reverse()
             
         return path, distances[end]
     
-    def simulate_packet(self, start, end):
+    def simulate_packet(self, start, end, num_packets=1, packet_size=64):
         path, total_cost = self.dijkstra(start, end)
         if path:
             self.packet_path = path
@@ -104,10 +115,12 @@ class NetworkSimulator:
                 'packet_id': f"PKT_{random.randint(1000, 9999)}",
                 'status': 'transmitting',
                 'source': start,
-                'destination': end
+                'destination': end,
+                'num_packets': num_packets,
+                'packet_size': packet_size
             }
             
-            log_entry = f"Packet {self.packet_stats['packet_id']} routed from {start} to {end}: {' -> '.join(path)} (Cost: {total_cost:.2f}ms)"
+            log_entry = f"{num_packets} packet(s) ({packet_size}KB each) {self.packet_stats['packet_id']} routed from {start} to {end}: {' -> '.join(path)} (Cost: {total_cost:.2f}ms)"
             self.logs.append(log_entry)
             return True
         else:

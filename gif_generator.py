@@ -5,6 +5,10 @@ import numpy as np
 import os
 from PIL import Image
 import io
+import warnings
+
+# Suppress font warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
 
 class GifGenerator:
     def __init__(self):
@@ -71,6 +75,13 @@ class GifGenerator:
             
             # Labels
             nx.draw_networkx_labels(simulator.graph, pos, ax=ax, font_size=8)
+            
+            # Add packet stats text
+            stats_text = f"Packet ID: {simulator.packet_stats.get('packet_id', 'N/A')}\n"
+            stats_text += f"Packets: {simulator.packet_stats.get('num_packets', 1)} x {simulator.packet_stats.get('packet_size', 64)}KB\n"
+            stats_text += f"Hops: {simulator.packet_stats.get('hops', 0)} | Latency: {simulator.packet_stats.get('total_latency', 0):.1f}ms"
+            ax.text(0.02, 0.98, stats_text, transform=ax.transAxes, fontsize=9, 
+                   verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
             
             ax.set_title(f"Packet Transfer Animation - Frame {frame_num+1}/{total_frames}")
             ax.axis('off')

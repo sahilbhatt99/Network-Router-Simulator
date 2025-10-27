@@ -13,7 +13,7 @@ class VideoGenerator:
         
         # Check if ffmpeg is available
         try:
-            subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
+            result = subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True, shell=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
             st.error("FFmpeg not found. Please install FFmpeg to generate videos.")
             return None
@@ -27,10 +27,10 @@ class VideoGenerator:
                 '-vf', 'scale=800:600',
                 self.output_path
             ]
-            subprocess.run(cmd, check=True, capture_output=True)
+            subprocess.run(cmd, check=True, capture_output=True, shell=True)
             return self.output_path
         except Exception as e:
-            st.error(f"FFmpeg error: {e}")
+            st.error(f"Video generation failed: {e}")
             return None
     
     def create_manual_video(self, frames):
@@ -40,7 +40,7 @@ class VideoGenerator:
         
         # Check if ffmpeg is available
         try:
-            subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
+            subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True, shell=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
             st.error("FFmpeg not found. Please install FFmpeg to generate videos.")
             return None
@@ -53,7 +53,7 @@ class VideoGenerator:
                 '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
                 output_path
             ]
-            subprocess.run(cmd, check=True, capture_output=True)
+            subprocess.run(cmd, check=True, capture_output=True, shell=True)
             
             # Cleanup frames
             for frame in frames:

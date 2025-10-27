@@ -94,11 +94,17 @@ class UIComponents:
             start_router = st.selectbox("Start Router", routers, key="sim_start")
             end_router = st.selectbox("End Router", routers, key="sim_end")
             
+            col_packet1, col_packet2 = st.columns(2)
+            with col_packet1:
+                num_packets = st.number_input("Number of Packets", min_value=1, max_value=10, value=1)
+            with col_packet2:
+                packet_size = st.number_input("Packet Size (KB)", min_value=1, max_value=1500, value=64)
+            
             col_sim1, col_sim2 = st.columns(2)
             with col_sim1:
                 if st.button("Send Packet"):
                     if start_router != end_router:
-                        simulator.simulate_packet(start_router, end_router)
+                        simulator.simulate_packet(start_router, end_router, num_packets, packet_size)
                         st.rerun()
             
             with col_sim2:
@@ -145,25 +151,23 @@ class UIComponents:
                 st.dataframe(pd.DataFrame(edge_data), use_container_width=True)
     
     @staticmethod
-    def render_packet_analytics(packet_stats):
-        """Render packet analytics section"""
+    def render_packet_stats(packet_stats):
+        """Render packet statistics as regular section"""
         if packet_stats['status'] != 'idle':
-            st.subheader("📈 Packet Analytics")
-            col_stat1, col_stat2, col_stat3 = st.columns(3)
+            st.subheader("Packet Statistics")
             
-            with col_stat1:
-                st.metric("Packet ID", packet_stats.get('packet_id', 'N/A'))
-                st.metric("Status", packet_stats.get('status', 'idle'))
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.write(f"**Packet ID:** {packet_stats.get('packet_id', 'N/A')}")
+                st.write(f"**Status:** {packet_stats.get('status', 'idle')}")
             
-            with col_stat2:
-                st.metric("TTL Remaining", f"{packet_stats.get('ttl', 0):.0f}")
-                st.metric("Hops", packet_stats.get('hops', 0))
+            with col2:
+                st.write(f"**Number of Packets:** {packet_stats.get('num_packets', 1)}")
+                st.write(f"**Packet Size:** {packet_stats.get('packet_size', 64)} KB")
             
-            with col_stat3:
-                st.metric("Total Latency", f"{packet_stats.get('total_latency', 0):.2f}ms")
-                if packet_stats.get('end_time') and packet_stats.get('start_time'):
-                    actual_time = (packet_stats['end_time'] - packet_stats['start_time']).total_seconds()
-                    st.metric("Actual Time", f"{actual_time:.2f}s")
+            with col3:
+                st.write(f"**Hops:** {packet_stats.get('hops', 0)}")
+                st.write(f"**Total Latency:** {packet_stats.get('total_latency', 0):.2f}ms")
     
     @staticmethod
     def render_simulation_logs(logs):

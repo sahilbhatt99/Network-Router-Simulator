@@ -3,6 +3,10 @@ import matplotlib.patches as patches
 import networkx as nx
 import numpy as np
 import os
+import warnings
+
+# Suppress font warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='matplotlib')
 
 class NetworkVisualizer:
     def __init__(self):
